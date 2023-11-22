@@ -1,123 +1,140 @@
 #include <iostream>
-#include <vector>
-#include <string>
 #include <ctime>
-#include <cmath>
+#include <string>
+#include <sstream>
+#include <vector>
+#include <iomanip>
+
+using namespace std;
 
 // Function to check if a number is prime
-bool is_prime(int n) {
+bool isPrime(int n) {
     if (n <= 1) return false;
     if (n <= 3) return true;
+
     if (n % 2 == 0 || n % 3 == 0) return false;
 
     for (int i = 5; i * i <= n; i += 6) {
-        if (n % i == 0 || n % (i + 2) == 0) return false;
+        if (n % i == 0 || n % (i + 2) == 0)
+            return false;
     }
 
     return true;
 }
 
 // Function to generate a list of prime numbers up to a given limit
-std::vector<int> generate_primes(int limit) {
-    std::vector<int> primes;
-    for (int i = 2; i <= limit; ++i) {
-        if (is_prime(i)) {
+vector<int> generatePrimes(int limit) {
+    vector<int> primes;
+
+    for (int i = 2; i <= limit; i++) {
+        if (isPrime(i)) {
             primes.push_back(i);
         }
     }
+
     return primes;
 }
 
 // Function to calculate the greatest common divisor
 int gcd(int a, int b) {
-    while (b != 0) {
-        int temp = b;
-        b = a % b;
-        a = temp;
-    }
-    return a;
+    if (b == 0)
+        return a;
+    return gcd(b, a % b);
 }
 
 // Function to generate the RSA key pair
-std::tuple<int, int, int> generate_key_pair() {
-    std::vector<int> primes = generate_primes(100);
+void generateKeyPair(int& n, int& e, int& d) {
+    srand(time(nullptr));
+
+    // Generate a list of prime numbers up to a reasonable limit
+    vector<int> primes = generatePrimes(100);
+
     int p, q;
     
-    std::cout << "Enter the first prime number (p): ";
-    std::cin >> p;
-    std::cout << "Enter the second prime number (q): ";
-    std::cin >> q;
+    // Randomly select two prime numbers
+    cout << "Enter the first prime number (p): ";
+    cin >> p;
 
-    int n = p * q;
+    cout << "Enter the second prime number (q): ";
+    cin >> q;
+
+    n = p * q;
     int phi = (p - 1) * (q - 1);
 
     // Find e (public key)
-    int e = 2;
-    while (e < phi) {
-        if (gcd(e, phi) == 1) {
+    for (e = 2; e < phi; e++) {
+        if (gcd(e, phi) == 1)
             break;
-        }
-        e += 1;
     }
 
     // Find d (private key)
-    int d = 2;
+    d = 2;
     while ((d * e) % phi != 1) {
-        d += 1;
+        d++;
     }
-
-    return std::make_tuple(n, e, d);
 }
 
 // Function to encrypt a message
-std::string encrypt(const std::string& message, int e, int n) {
-    std::string ciphertext;
+string encrypt(const string& message, int e, int n) {
+    string ciphertext = "";
+
     for (char c : message) {
         int m = static_cast<int>(c);
-        int crypted = static_cast<int>(std::pow(m, e)) % n;
-        ciphertext += std::to_string(crypted) + ' ';
+        int crypted = 1;
+        for (int i = 0; i < e; i++) {
+            crypted = (crypted * m) % n;
+        }
+        ciphertext += to_string(crypted) + " ";
     }
+
     return ciphertext;
 }
 
 // Function to decrypt a ciphertext
-std::string decrypt(const std::string& ciphertext, int d, int n) {
-    std::string decrypted_message;
-    std::istringstream iss(ciphertext);
-    std::string token;
-    while (std::getline(iss, token, ' ')) {
-        int c = std::stoi(token);
-        int decrypted_char = static_cast<int>(std::pow(c, d)) % n;
-        decrypted_message += static_cast<char>(decrypted_char);
+string decrypt(const string& ciphertext, int d, int n) {
+    stringstream ss(ciphertext);
+    string decrypted = "";
+    int c;
+
+    while (ss >> c) {
+        int decryptedChar = 1;
+        for (int i = 0; i < d; i++) {
+            decryptedChar = (decryptedChar * c) % n;
+        }
+        decrypted += static_cast<char>(decryptedChar);
     }
-    return decrypted_message;
+
+    return decrypted;
 }
 
 int main() {
     int n, e, d;
-    std::tie(n, e, d) = generate_key_pair();
-    std::string message;
+    string message;
 
-    std::cout << "Enter the message to be encrypted: ";
-    std::cin.ignore();
-    std::getline(std::cin, message);
+    // Generate RSA keys
+    generateKeyPair(n, e, d);
+
+    cout << "Enter the message to be encrypted: ";
+    cin.ignore();
+    getline(cin, message);
 
     // Time taken for encryption
-    clock_t start_time = clock();
-    std::string ciphertext = encrypt(message, e, n);
-    double encryption_time = static_cast<double>(clock() - start_time) / CLOCKS_PER_SEC;
+    clock_t start = clock();
+    string ciphertext = encrypt(message, e, n);
+    clock_t end = clock();
+    double encryptionTime = static_cast<double>(end - start) / CLOCKS_PER_SEC;
 
     // Time taken for decryption
-    start_time = clock();
-    std::string decrypted_message = decrypt(ciphertext, d, n);
-    double decryption_time = static_cast<double>(clock() - start_time) / CLOCKS_PER_SEC;
+    start = clock();
+    string decryptedMessage = decrypt(ciphertext, d, n);
+    end = clock();
+    double decryptionTime = static_cast<double>(end - start) / CLOCKS_PER_SEC;
+    cout << fixed << setprecision(6);  // Format time output
 
-    std::cout << "\nTime taken for encryption: " << encryption_time << " seconds" << std::endl;
-    std::cout << "Time taken for decryption: " << decryption_time << " seconds" << std::endl;
-
-    std::cout << "\nMessage provided for encryption: " << message << std::endl;
-    std::cout << "Ciphertext generated: " << ciphertext << std::endl;
-    std::cout << "Decrypted message: " << decrypted_message << std::endl;
-
+    cout << "\nTime taken for encryption: " << encryptionTime << " seconds\n";
+    cout << "Time taken for decryption: " << decryptionTime << " seconds\n";
+    cout << "\nMessage provided for encryption: " << message << "\n";
+    cout << "Ciphertext generated: " << ciphertext << "\n";
+    cout << "Decrypted message: " << decryptedMessage << "\n";
     return 0;
 }
