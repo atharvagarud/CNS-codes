@@ -1,4 +1,5 @@
 #include <iostream>
+using namespace std;
 
 // Function to calculate (base^exponent) % modulo efficiently
 int mod_pow(int base, int exponent, int modulo) {
