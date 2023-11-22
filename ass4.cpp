@@ -21,13 +21,13 @@ int main() {
 
     // Alice's private key
     int private_key_alice;
-    std::cout << "Alice, enter your private key: ";
-    std::cin >> private_key_alice;
+    cout << "Alice, enter your private key: ";
+    cin >> private_key_alice;
 
     // Bob's private key
     int private_key_bob;
-    std::cout << "Bob, enter your private key: ";
-    std::cin >> private_key_bob;
+    cout << "Bob, enter your private key: ";
+    cin >> private_key_bob;
 
     // Alice computes her public key
     int public_key_alice = mod_pow(g, private_key_alice, p);
@@ -48,14 +48,14 @@ int main() {
     int shared_secret_bob = mod_pow(public_key_alice, private_key_bob, p);
 
     // Display shared secrets
-    std::cout << "Shared secret computed by Alice: " << shared_secret_alice << std::endl;
-    std::cout << "Shared secret computed by Bob: " << shared_secret_bob << std::endl;
+    cout << "Shared secret computed by Alice: " << shared_secret_alice << std::endl;
+    cout << "Shared secret computed by Bob: " << shared_secret_bob << std::endl;
 
     if (shared_secret_alice == shared_secret_bob) {
-        std::cout << "Communication is secure. Messages are not compromised." << std::endl;
+        cout << "Communication is secure. Messages are not compromised." << std::endl;
     } else {
-        std::cout << "MITM attack successful! Eve has intercepted the messages." << std::endl;
-        std::cout << "Eve's intercepted data: " << shared_secret_alice << std::endl;
+        cout << "MITM attack successful! Eve has intercepted the messages." << std::endl;
+        cout << "Eve's intercepted data: " << shared_secret_alice << std::endl;
     }
 
     return 0;
